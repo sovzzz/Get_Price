@@ -1,0 +1,30 @@
+name: Get Bitcoin Current Price and Commit to Repository
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour, on the hour
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run curl command
+      run: |
+        curl -X GET 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en' -H 'accept: application/json' > output.json
+
+    - name: Extract Bitcoin Current Price
+      run: |
+        jq '.[] | select(.id=="bitcoin") | .current_price' output.json > bitcoin_price.json
+
+    - name: Commit and push if it changed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add bitcoin_price.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update Bitcoin price" && git push)
