@@ -1,6 +1,8 @@
 name: Hourly Data Fetch
 
 on:
+  push:
+    branches: [ main ]
   schedule:
     - cron: '0 * * * *' # Runs every hour
 
